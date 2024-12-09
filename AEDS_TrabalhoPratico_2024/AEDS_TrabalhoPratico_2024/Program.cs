@@ -12,7 +12,7 @@ namespace AEDS_TrabalhoPratico_2024
     {
         static void Quicksort(Candidato[] array, int esq, int dir)
         {
-            int i = esq, j = dir; 
+            int i = esq, j = dir;
             double pivo = array[(esq + dir) / 2].NotaMedia;
 
             while (i <= j)
@@ -40,6 +40,30 @@ namespace AEDS_TrabalhoPratico_2024
             }
         }
 
+        static bool VerificarSelecao(Candidato candidato, Curso curso, List<Candidato> candidatos)
+        {
+            if (candidato.NotaMedia < curso.NotaDeCorte)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < candidatos.Count; i++)
+            {
+                if (candidato.NotaMedia == candidatos[i].NotaMedia)
+                {
+                    if (candidato.NotaRedacao < candidatos[i].NotaRedacao)
+                    {
+                        return false;
+                    }
+                    else if (candidato.NotaRedacao == candidatos[i].NotaRedacao)
+                    {
+                        return candidato.NotaMat > candidatos[i].NotaMat;
+                    }
+                }
+            }
+
+            return true;
+        }
         static void ExibirSaida(Dictionary<int, Curso> listaCursos)
         {
             for (int i = 0; i < listaCursos.Count; i++)
@@ -76,9 +100,9 @@ namespace AEDS_TrabalhoPratico_2024
                     if (countLinhas == 1)
                     {
                         quantCursos = int.Parse(informacoesArq[0]);
-                        quantCandidatos = int.Parse(informacoesArq[1]);                        
+                        quantCandidatos = int.Parse(informacoesArq[1]);
 
-                    }                    
+                    }
                     else if (countLinhas > 1 && countLinhas <= quantCursos + 1)
                     {
                         curso = new Curso();
@@ -89,16 +113,16 @@ namespace AEDS_TrabalhoPratico_2024
 
                         listaCursos.Add(curso.CodCurso, curso);
                     }
-                    else if(countLinhas > quantCursos + 1 || countLinhas <= quantCursos + quantCandidatos + 1)
+                    else if (countLinhas > quantCursos + 1 || countLinhas <= quantCursos + quantCandidatos + 1)
                     {
                         aluno = new Candidato();
-                        aluno.Nome = informacoesArq[0];                     
+                        aluno.Nome = informacoesArq[0];
                         aluno.NotaRedacao = double.Parse(informacoesArq[1]);
                         aluno.NotaLing = double.Parse(informacoesArq[2]);
                         aluno.NotaMat = double.Parse(informacoesArq[3]);
                         aluno.Curso1 = int.Parse(informacoesArq[4]);
                         aluno.Curso2 = int.Parse(informacoesArq[5]);
-                        aluno.NotaMedia = Math.Round(((aluno.NotaRedacao + aluno.NotaLing + aluno.NotaMat) / 3), 2); 
+                        aluno.NotaMedia = Math.Round(((aluno.NotaRedacao + aluno.NotaLing + aluno.NotaMat) / 3), 2);
 
                         listaCandidatos.Add(aluno);
 
@@ -133,7 +157,7 @@ namespace AEDS_TrabalhoPratico_2024
                         Candidato c = new Candidato(listaCandidatos[j]);
                         temp.Add(c);
                     }
-                    
+
                 }
 
 
@@ -147,7 +171,7 @@ namespace AEDS_TrabalhoPratico_2024
 
                 Quicksort(listaCursos.ElementAt(i).Value.TodosCandidatos, 0, listaCursos.ElementAt(i).Value.TodosCandidatos.Length - 1);
 
-                listaCursos[i].NotaDeCorte = listaCursos[i].TodosCandidatos[listaCursos[i].QuantVagas - 1].NotaMedia;              
+                listaCursos[i].NotaDeCorte = listaCursos[i].TodosCandidatos[listaCursos[i].QuantVagas - 1].NotaMedia;
 
             }
 
@@ -159,97 +183,79 @@ namespace AEDS_TrabalhoPratico_2024
                 {
                     if (listaCandidatos[i].Curso1 == listaCursos[j].CodCurso)
                     {
-                        if(listaCandidatos[i].NotaMedia < listaCursos[j].NotaDeCorte) { 
-                            c1 = false;
-                        }
-                        else
-                        {
-                            if ((i + 1) <= (listaCandidatos.Count) && (listaCandidatos[i].NotaMedia == listaCandidatos[i + 1].NotaMedia))
-                            {
-                                c1 = listaCandidatos[i].NotaRedacao > listaCandidatos[i + 1].NotaRedacao;
-
-                            }
-
-                        }
+                        c1 = VerificarSelecao(listaCandidatos[i], listaCursos[j], listaCandidatos);
                     }
+
                     if (listaCandidatos[i].Curso2 == listaCursos[j].CodCurso)
                     {
-                        if (listaCandidatos[i].NotaMedia < listaCursos[j].NotaDeCorte)
-                        {
-                            c2 = false;
-                        }
-                        else
-                        {
-                            if ((i + 1) <= (listaCandidatos.Count) && (listaCandidatos[i].NotaMedia == listaCandidatos[i + 1].NotaMedia))
-                            {
-                                c2 = listaCandidatos[i].NotaRedacao > listaCandidatos[i + 1].NotaRedacao;
+                        c2 = VerificarSelecao(listaCandidatos[i], listaCursos[j], listaCandidatos);
+                    }
 
+                    for (int h = 0; h < listaCursos.Count; h++)
+                    {
+                        if (c1 == true && c2 == true)
+                        {
+                            if (listaCandidatos[i].Curso1 == listaCursos[h].CodCurso)
+                            {
+                                listaCursos[h].CandidatosSelecionados.Inserir(listaCandidatos[i]);
+                                break; 
+                            }
+                        }
+                        else if (c1 == true && c2 == false)
+                        {
+                            if (listaCandidatos[i].Curso1 == listaCursos[h].CodCurso)
+                            {
+                                listaCursos[h].CandidatosSelecionados.Inserir(listaCandidatos[i]);
+                                break; 
+                            }
+                        }
+                        else if (c1 == false && c2 == true)
+                        {
+                            if (listaCandidatos[i].Curso2 == listaCursos[h].CodCurso)
+                            {
+                                listaCursos[h].CandidatosSelecionados.Inserir(listaCandidatos[i]);
+
+                                if (listaCandidatos[i].Curso1 == listaCursos[h].CodCurso &&
+                                    listaCursos[h].FilaEspera.ObterTamanho() < 10)
+                                {
+                                    listaCursos[h].FilaEspera.Inserir(listaCandidatos[i]);
+                                }
+                                break; 
+                            }
+                        }
+                        else if (c1 == false && c2 == false)
+                        {
+                            if (listaCandidatos[i].Curso1 == listaCursos[h].CodCurso &&
+                                listaCursos[h].FilaEspera.ObterTamanho() < 10)
+                            {
+                                listaCursos[h].FilaEspera.Inserir(listaCandidatos[i]);
+                            }
+
+                            if (listaCandidatos[i].Curso2 == listaCursos[h].CodCurso &&
+                                listaCursos[h].FilaEspera.ObterTamanho() < 10)
+                            {
+                                listaCursos[h].FilaEspera.Inserir(listaCandidatos[i]);
                             }
                         }
                     }
-
                 }
 
-                for (int h = 0; h < listaCursos.Count; h++)
+                try
                 {
-                    if (c1 == true && c2 == true)
-                    {
-                        if (listaCandidatos[i].Curso1 == listaCursos[h].CodCurso)
-                        {
-                            listaCursos[h].CandidatosSelecionados.Inserir(listaCandidatos[i]);
-                        }
-                    }
-                    else if (c1 == true && c2 == false)
-                    {
-                        if (listaCandidatos[i].Curso1 == listaCursos[h].CodCurso)
-                        {
-                            listaCursos[h].CandidatosSelecionados.Inserir(listaCandidatos[i]);
-                        }
-                        else if (listaCandidatos[i].Curso2 == listaCursos[h].CodCurso)
-                        {
-                            listaCursos[i].FilaEspera.Inserir(listaCandidatos[i]);
-                        }
-                    }
-                    else if (c1 == false && c2 == true)
-                    {                        
-                        if (listaCandidatos[i].Curso2 == listaCursos[h].CodCurso)
-                        {
-                            listaCursos[i].CandidatosSelecionados.Inserir(listaCandidatos[i]);
-                        }
-                        else if (listaCandidatos[i].Curso1 == listaCursos[h].CodCurso)
-                        {
-                            listaCursos[h].FilaEspera.Inserir(listaCandidatos[i]);
-                        }
-                    }
-                    else if (c1 == false && c2 == false)
-                    {
-                        if (listaCandidatos[i].Curso1 == listaCursos[h].CodCurso)
-                        {
-                            listaCursos[h].FilaEspera.Inserir(listaCandidatos[i]);
-                        }
-                        else if (listaCandidatos[i].Curso2 == listaCursos[h].CodCurso)
-                        {
-                            listaCursos[h].FilaEspera.Inserir(listaCandidatos[i]);
-                        }
-                    }
-                }                
+                    StreamWriter arqSaida = new StreamWriter("saida.txt", false, Encoding.UTF8);
+
+                    ExibirSaida(listaCursos);
+
+                    arqSaida.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erro ao abrir ou criar o arquivo: " + ex.Message);
+                }
+
+
+                Console.ReadLine();
             }
-
-            try
-            {
-                StreamWriter arqSaida = new StreamWriter("saida.txt", false, Encoding.UTF8);
-
-                ExibirSaida(listaCursos);                
-
-                arqSaida.Close();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Erro ao abrir ou criar o arquivo: " + ex.Message);
-            }
-
-
-            Console.ReadLine();
         }
     }
 }
